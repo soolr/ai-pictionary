@@ -296,3 +296,101 @@
 - API Key 需要在环境变量中配置
 - 建议使用 PM2 或 systemd 管理 Node.js 进程
 - 定期检查 SSL 证书有效期
+
+## 7. 更新记录 (2026-03-13)
+
+### 服务器目录状态
+- **本地开发目录**: `D:\Develop\ai-pictionary` (Windows)
+- **服务器代码目录**: `/www/wwwroot/ai-pictionary` (Linux)
+- **状态**: 服务器目录尚未同步，当前处于本地开发阶段
+
+### 待办事项
+- [x] 本地构建项目 (`pnpm build`) - 成功
+- [x] 本地 ESLint 检查 - 通过
+- [x] 同步代码到服务器目录 (`/www/wwwroot/ai-pictionary`)
+- [x] 在服务器上安装依赖 (`pnpm install`)
+- [x] 手动配置 Nginx 反向代理 - 已完成
+- [x] 重启 Nginx - 已完成 (用户操作)
+- [ ] 启动 Next.js 服务 (使用 deploy.sh) - 需要在服务器上执行 `./deploy.sh`
+- [ ] 测试 HTTPS 访问
+
+### 服务器操作指令
+在服务器上执行 deploy.sh 启动服务：
+```bash
+cd /www/wwwroot/ai-pictionary
+./deploy.sh
+```
+
+或者手动执行以下命令：
+```bash
+cd /www/wwwroot/ai-pictionary
+pm2 delete ai-pictionary 2>/dev/null || true
+pm2 start "pnpm start" --name ai-pictionary
+pm2 save
+```
+
+### 部署步骤 (手动)
+1. 将本地代码同步到服务器：`scp -r D:\Develop\ai-pictionary user@server:/www/wwwroot/`
+2. 在服务器上进入目录：`cd /www/wwwroot/ai-pictionary`
+3. 安装依赖：`pnpm install`
+4. 构建项目：`pnpm build`
+5. **手动配置 Nginx**：用户将手动操作 nginx 配置
+6. 启动服务：`pm2 start "pnpm start" --name ai-pictionary`
+
+### 注意
+- Nginx 配置文件已准备：`nginx.conf`
+- SSL 证书目录：`/www/wwwroot/cert/`
+- 服务器代码目录：`/www/wwwroot/ai-pictionary`
+- 服务器使用 deploy.sh 启动服务
+
+## 8. Deploy.sh 部署脚本
+
+### 脚本功能
+deploy.sh 是服务器部署脚本，包含以下功能：
+1. 拉取最新代码 (`git pull origin main`)
+2. 安装依赖 (`pnpm install`)
+3. 构建项目 (`pnpm build`)
+4. 使用 PM2 启动服务
+5. 显示部署完成信息
+
+### 使用方法
+在服务器上执行：
+```bash
+cd /www/wwwroot/ai-pictionary
+./deploy.sh
+```
+
+### 脚本内容
+```bash
+#!/bin/bash
+# AI Pictionary 部署脚本
+
+echo "开始部署 AI Pictionary..."
+
+# 1. 拉取最新代码
+echo "正在拉取最新代码..."
+git pull origin main
+
+# 2. 安装依赖
+echo "正在安装依赖..."
+pnpm install
+
+# 3. 构建项目
+echo "正在构建项目..."
+pnpm build
+
+# 4. 启动服务（使用 PM2）
+echo "正在启动服务..."
+pm2 delete ai-pictionary 2>/dev/null || true
+pm2 start "pnpm start" --name ai-pictionary
+
+echo "部署完成！"
+echo "访问地址: http://soolr.com 或 http://www.soolr.com"
+echo "PM2 状态: pm2 status"
+echo "请手动配置 Nginx: cp nginx.conf /etc/nginx/conf.d/ai-pictionary.conf && nginx -t && systemctl reload nginx"
+```
+
+### 注意事项
+- 确保服务器已安装 pnpm 和 PM2
+- 确保有正确的 Git 权限拉取代码
+- Nginx 配置需要手动执行（脚本中已提示）
