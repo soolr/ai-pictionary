@@ -115,7 +115,111 @@
 - [x] 支持撤销操作 (Ctrl+Z)
 - [x] 画布历史记录管理
 
-## 5. 项目状态更新 (2026-03-12)
+## 5. Nginx 配置规范 (基于宝塔面板标准)
+
+### 5.1 配置文件标准
+基于 `baota.nginx.conf` 编写主配置文件，确保以下结构和内容一致：
+
+#### 全局配置
+- `user www www;`
+- `worker_processes auto;`
+- `error_log /www/wwwlogs/nginx_error.log crit;`
+- `pid /www/server/nginx/logs/nginx.pid;`
+- `worker_rlimit_nofile 51200;`
+
+#### Stream 模块配置
+- 日志格式 `tcp_format`
+- TCP 访问日志和错误日志
+- 包含 `/www/server/panel/vhost/nginx/tcp/*.conf`
+
+#### Events 模块配置
+- `use epoll;`
+- `worker_connections 51200;`
+- `multi_accept on;`
+
+#### HTTP 模块配置
+**全局设置**
+- `include mime.types;`
+- `#include luawaf.conf;`
+- `include proxy.conf;`
+- `lua_package_path "/www/server/nginx/lib/lua/?.lua;;";`
+- `default_type application/octet-stream;`
+
+**性能优化**
+- `server_names_hash_bucket_size 512;`
+- `client_header_buffer_size 32k;`
+- `large_client_header_buffers 4 32k;`
+- `client_max_body_size 50m;`
+- `sendfile on;`
+- `tcp_nopush on;`
+- `keepalive_timeout 60;`
+- `tcp_nodelay on;`
+
+**FastCGI 设置**
+- `fastcgi_connect_timeout 300;`
+- `fastcgi_send_timeout 300;`
+- `fastcgi_read_timeout 300;`
+- `fastcgi_buffer_size 64k;`
+- `fastcgi_buffers 4 64k;`
+- `fastcgi_busy_buffers_size 128k;`
+- `fastcgi_temp_file_write_size 256k;`
+- `fastcgi_intercept_errors on;`
+
+**Gzip 压缩**
+- `gzip on;`
+- `gzip_min_length 1k;`
+- `gzip_buffers 4 16k;`
+- `gzip_http_version 1.1;`
+- `gzip_comp_level 5;`
+- `gzip_types` 包含常见 MIME 类型
+- `gzip_vary on;`
+- `gzip_proxied expired no-cache no-store private auth;`
+- `gzip_disable "MSIE [1-6]\.";`
+
+**限制设置**
+- `limit_conn_zone $binary_remote_addr zone=perip:10m;`
+- `limit_conn_zone $server_name zone=perserver:10m;`
+
+**其他设置**
+- `server_tokens off;`
+- `access_log off;`
+
+#### Server 块配置
+- 监听 888 端口 (phpmyadmin)
+- 包含 `enable-php.conf`
+- 静态资源缓存设置
+- 隐藏文件访问限制
+
+#### 包含配置
+- `include /www/server/panel/vhost/nginx/*.conf;`
+
+### 5.2 现有 nginx.conf 需要改进的地方
+1. 缺少全局配置 (user, worker_processes 等)
+2. 缺少 Stream 模块
+3. Events 模块配置不完整
+4. HTTP 模块缺少大量性能优化参数
+5. 缺少 FastCGI、Gzip、限制等配置
+6. 缺少 phpmyadmin server 块
+7. 缺少 include 语句
+
+### 5.3 目标
+编写一个完整的 nginx.conf，包含 baota.nginx.conf 的所有配置，同时保留现有 Next.js 应用的配置。
+
+### 5.4 配置完成状态
+- [x] 全局配置 (user, worker_processes, error_log, pid, worker_rlimit_nofile)
+- [x] Stream 模块配置 (tcp_format 日志格式, 访问/错误日志, 包含 tcp/*.conf)
+- [x] Events 模块配置 (use epoll, worker_connections, multi_accept)
+- [x] HTTP 模块全局设置 (mime.types, proxy.conf, lua_package_path, default_type)
+- [x] 性能优化参数 (server_names_hash_bucket_size, client_header_buffer_size, etc.)
+- [x] FastCGI 设置 (timeout, buffer sizes, intercept_errors)
+- [x] Gzip 压缩配置 (on, level, types, vary, proxied, disable)
+- [x] 限制设置 (limit_conn_zone)
+- [x] 其他设置 (server_tokens off, access_log off)
+- [x] PHPMyAdmin Server 块 (888 端口)
+- [x] Next.js 应用配置 (80/443 端口, SSL, 代理配置)
+- [x] 包含宝塔面板虚拟主机配置
+
+## 6. 项目状态更新 (2026-03-12)
 
 ### 已完成功能
 1. **绘画功能**
