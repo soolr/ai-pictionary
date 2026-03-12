@@ -163,3 +163,32 @@
 1. 支持更多画笔颜色自定义
 2. 画布导出功能
 3. 性能优化 (减少 API 调用频率)
+
+### 部署步骤
+1. 构建项目: `npm run build`
+2. 启动服务: `npm start` (端口 3000)
+3. 配置 Nginx 反向代理
+4. 测试配置: `nginx -t`
+5. 重载 Nginx: `nginx -s reload`
+6. 配置防火墙开放 80/443 端口
+
+### 端口重定向说明
+- **80端口**: HTTP 请求自动重定向到 443 端口 (HTTPS)
+- **443端口**: HTTPS 服务端口，处理所有安全连接
+- **重定向规则**: 使用 301 永久重定向，提升 SEO 和用户体验
+
+### 服务器目录结构
+- **代码目录**: `/www/wwwroot/ai-pictionary`
+- **项目路径**: `/www/wwwroot/ai-pictionary/`
+- **构建输出**: `/www/wwwroot/ai-pictionary/.next/`
+- **日志目录**: `/www/wwwroot/ai-pictionary/logs/`
+- **环境变量**: `/www/wwwroot/ai-pictionary/.env`
+- **证书目录**: `/www/wwwroot/cert/`
+  - `soolr.com.key` - SSL 私钥文件
+  - `soolr.com.pem` - SSL 证书文件
+
+### 注意事项
+- 确保 Next.js 服务在 Nginx 启动前已运行
+- API Key 需要在环境变量中配置
+- 建议使用 PM2 或 systemd 管理 Node.js 进程
+- 定期检查 SSL 证书有效期
