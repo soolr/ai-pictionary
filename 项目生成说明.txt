@@ -1,0 +1,9 @@
+#AI你画我猜网页游戏
+##项目概述
+创建一个在线你画我猜游戏,玩家可以在画布上作画,AI系统负责猜测画的是什么内容。
+##技术栈选择
+-技术栈:nextjs
+-AI使用pollinations.ai的API,从后台调用API
+-不要任何SDK,直接调用pollinations.aiAPI地址
+
+apikey sk_06KzQvxgqD81wEka19HjYBCwnmwa3DLF
