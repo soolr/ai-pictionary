@@ -302,46 +302,91 @@
 ### 服务器目录状态
 - **本地开发目录**: `D:\Develop\ai-pictionary` (Windows)
 - **服务器代码目录**: `/www/wwwroot/ai-pictionary` (Linux)
-- **状态**: 服务器目录尚未同步，当前处于本地开发阶段
+- **状态**: 使用 GitHub 同步代码，服务器已配置 Git 仓库
+
+### GitHub 同步代码流程
+
+#### 1. 本地推送代码到 GitHub
+```bash
+# 在本地 Windows 环境
+cd D:\Develop\ai-pictionary
+
+# 添加所有更改
+git add .
+
+# 提交更改
+git commit -m "更新部署配置"
+
+# 推送到 GitHub
+git push origin main
+```
+
+#### 2. 服务器拉取代码
+```bash
+# 在服务器上
+cd /www/wwwroot/ai-pictionary
+
+# 确保 Git 仓库已配置远程 origin
+git remote -v
+# 如果没有配置，添加远程仓库：
+# git remote add origin https://github.com/your-username/ai-pictionary.git
+
+# 拉取最新代码
+git pull origin main
+```
 
 ### 待办事项
 - [x] 本地构建项目 (`pnpm build`) - 成功
 - [x] 本地 ESLint 检查 - 通过
-- [x] 同步代码到服务器目录 (`/www/wwwroot/ai-pictionary`)
-- [x] 在服务器上安装依赖 (`pnpm install`)
+- [x] 配置 GitHub 同步代码
 - [x] 手动配置 Nginx 反向代理 - 已完成
 - [x] 重启 Nginx - 已完成 (用户操作)
-- [ ] 启动 Next.js 服务 (使用 deploy.sh) - 需要在服务器上执行 `./deploy.sh`
+- [ ] 在服务器上拉取最新代码
+- [ ] 重新构建项目 (`pnpm build`)
+- [ ] 启动 Next.js 服务
 - [ ] 测试 HTTPS 访问
 
 ### 服务器操作指令
-在服务器上执行 deploy.sh 启动服务：
+
+#### 方法一：使用 deploy.sh（推荐）
 ```bash
 cd /www/wwwroot/ai-pictionary
 ./deploy.sh
 ```
 
-或者手动执行以下命令：
+#### 方法二：手动执行
 ```bash
 cd /www/wwwroot/ai-pictionary
+
+# 1. 拉取最新代码
+git pull origin main
+
+# 2. 安装依赖（如果 package.json 有变化）
+pnpm install
+
+# 3. 重新构建项目（关键步骤，解决 404 问题）
+pnpm build
+
+# 4. 启动服务
 pm2 delete ai-pictionary 2>/dev/null || true
 pm2 start "pnpm start" --name ai-pictionary
 pm2 save
 ```
 
-### 部署步骤 (手动)
-1. 将本地代码同步到服务器：`scp -r D:\Develop\ai-pictionary user@server:/www/wwwroot/`
-2. 在服务器上进入目录：`cd /www/wwwroot/ai-pictionary`
-3. 安装依赖：`pnpm install`
-4. 构建项目：`pnpm build`
-5. **手动配置 Nginx**：用户将手动操作 nginx 配置
-6. 启动服务：`pm2 start "pnpm start" --name ai-pictionary`
+### 部署步骤（GitHub 同步）
+1. **本地推送代码**：将更改推送到 GitHub
+2. **服务器拉取代码**：`git pull origin main`
+3. **安装依赖**：`pnpm install`（如果 package.json 有变化）
+4. **构建项目**：`pnpm build`（解决 `.next` 目录问题）
+5. **配置 Nginx**：已配置完成
+6. **启动服务**：`pm2 start "pnpm start" --name ai-pictionary`
 
 ### 注意
 - Nginx 配置文件已准备：`nginx.conf`
 - SSL 证书目录：`/www/wwwroot/cert/`
 - 服务器代码目录：`/www/wwwroot/ai-pictionary`
 - 服务器使用 deploy.sh 启动服务
+- **重要**：每次代码更新后，必须在服务器上重新运行 `pnpm build`
 
 ## 8. Deploy.sh 部署脚本
 
