@@ -1,5 +1,19 @@
 # AI 你画我猜 - 项目规范
 
+## 0. 部署方式对比
+
+| 部署方式 | 优点 | 缺点 | 适用场景 |
+|---------|------|------|---------|
+| **Git 同步** | 自动化程度高，版本控制 | 需要 Git 权限，网络依赖 | 开发环境，持续集成 |
+| **FTP/SFTP** | 简单直接，无需 Git | 手动上传，无版本控制 | 生产环境，快速部署 |
+| **压缩包** | 一次性上传所有文件 | 需要解压，文件较大 | 网络不稳定环境 |
+
+### 推荐部署流程
+
+1. **开发阶段**：使用 Git 同步
+2. **生产部署**：使用 FTP/SFTP 上传构建后的文件
+3. **紧急修复**：使用压缩包快速上传
+
 ## 1. 项目概述
 
 - **项目名称**: AI Pictionary (你画我猜)
@@ -417,5 +431,180 @@ echo "请手动配置 Nginx: cp nginx.conf /etc/nginx/conf.d/ai-pictionary.conf 
 
 ### 注意事项
 - 确保服务器已安装 pnpm 和 PM2
-- 确保有正确的 Git 权限拉取代码
+- 确保有正确的 Git 权限拉取代码（Git 方式）
 - Nginx 配置需要手动执行（脚本中已提示）
+
+## 9. FTP/SFTP 部署方式
+
+### 9.1 部署流程
+
+#### 步骤 1: 本地准备
+1. 确保项目已构建（`.next/` 目录已生成）
+2. 检查需要上传的文件列表
+3. 打包文件（可选）
+
+#### 步骤 2: 上传文件
+使用 FTP/SFTP 客户端上传以下文件到 `/www/wwwroot/ai-pictionary/`：
+
+**必须上传的文件：**
+```
+/www/wwwroot/ai-pictionary/
+├── .next/                    # 构建后的文件（必须）
+├── src/                      # 源代码（建议，用于调试）
+├── public/                   # 静态资源（如果有）
+├── package.json              # 依赖配置
+├── pnpm-lock.yaml            # 锁定依赖版本
+├── tsconfig.json             # TypeScript 配置
+├── next.config.js            # Next.js 配置
+├── postcss.config.mjs        # PostCSS 配置
+├── .env.local                # 环境变量（包含 API Key）
+├── deploy.sh                 # 部署脚本
+├── nginx.conf                # Nginx 配置
+└── README.md                 # 说明文档
+```
+
+**不需要上传的文件：**
+- `node_modules/` (服务器上安装)
+- `.git/` (Git 仓库)
+- `nginx-1.24.0/` (服务器环境)
+- `baota.nginx.conf` (参考文件)
+- `package-lock.json` (使用 pnpm)
+
+#### 步骤 3: 服务器执行
+```bash
+# 1. 进入目录
+cd /www/wwwroot/ai-pictionary
+
+# 2. 赋予脚本执行权限
+chmod +x deploy.sh
+
+# 3. 运行部署脚本
+./deploy.sh
+```
+
+### 9.2 deploy.sh 脚本功能（FTP/SFTP 版本）
+
+```bash
+#!/bin/bash
+# AI Pictionary 部署脚本（FTP/SFTP 上传方式）
+
+# 检查 pnpm 是否安装
+if ! command -v pnpm &> /dev/null; then
+    echo "错误: pnpm 未安装，请先安装 pnpm"
+    echo "安装命令: npm install -g pnpm"
+    exit 1
+fi
+
+# 检查 PM2 是否安装
+if ! command -v pm2 &> /dev/null; then
+    echo "错误: PM2 未安装，请先安装 PM2"
+    echo "安装命令: npm install -g pm2"
+    exit 1
+fi
+
+# 进入项目目录
+cd /www/wwwroot/ai-pictionary
+
+# 安装依赖（生产环境）
+echo "正在安装依赖..."
+pnpm install --production
+
+# 停止现有服务
+echo "停止现有服务..."
+pm2 delete ai-pictionary 2>/dev/null || true
+
+# 启动服务（使用 PM2）
+echo "正在启动服务..."
+pm2 start "pnpm start" --name ai-pictionary
+pm2 save
+
+echo "部署完成！"
+echo "访问地址: http://soolr.com 或 http://www.soolr.com"
+echo "PM2 状态: pm2 status"
+echo "Nginx 配置已准备: /www/wwwroot/ai-pictionary/nginx.conf"
+echo "如需更新 Nginx 配置:"
+echo "  cp /www/wwwroot/ai-pictionary/nginx.conf /etc/nginx/conf.d/ai-pictionary.conf"
+echo "  nginx -t && systemctl reload nginx"
+```
+
+### 9.3 脚本功能说明
+
+✅ **环境检查**：检查 pnpm 和 PM2 是否安装  
+✅ **依赖安装**：安装生产环境依赖（不包含 devDependencies）  
+✅ **服务管理**：停止现有服务并启动新服务  
+✅ **PM2 保存**：保存 PM2 配置，重启后自动恢复  
+✅ **部署反馈**：显示访问地址和状态信息  
+
+### 9.4 Nginx 配置（只需执行一次）
+
+```bash
+# 复制 Nginx 配置
+cp /www/wwwroot/ai-pictionary/nginx.conf /etc/nginx/conf.d/ai-pictionary.conf
+
+# 测试配置
+nginx -t
+
+# 重载 Nginx
+systemctl reload nginx
+```
+
+### 9.5 服务器环境要求
+
+- **Node.js**：建议 18+ 版本
+- **pnpm**：全局安装 (`npm install -g pnpm`)
+- **PM2**：全局安装 (`npm install -g pm2`)
+- **Nginx**：已安装并配置
+
+### 9.6 故障排除
+
+#### 问题 1: pnpm 未安装
+```bash
+npm install -g pnpm
+```
+
+#### 问题 2: PM2 未安装
+```bash
+npm install -g pm2
+```
+
+#### 问题 3: 端口被占用
+```bash
+# 查看端口占用
+netstat -tulpn | grep :3000
+
+# 停止占用端口的进程
+kill -9 <PID>
+```
+
+#### 问题 4: 权限不足
+```bash
+# 赋予脚本执行权限
+chmod +x deploy.sh
+
+# 赋予目录权限
+chown -R www:www /www/wwwroot/ai-pictionary
+```
+
+### 9.7 部署验证
+
+部署完成后，检查以下内容：
+
+1. **服务状态**
+   ```bash
+   pm2 status
+   ```
+
+2. **访问网站**
+   - http://soolr.com
+   - http://www.soolr.com
+
+3. **检查日志**
+   ```bash
+   pm2 logs ai-pictionary
+   ```
+
+4. **检查 Nginx**
+   ```bash
+   nginx -t
+   systemctl status nginx
+   ```
