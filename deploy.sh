@@ -14,7 +14,7 @@ git checkout -- deploy.sh || true
 git pull origin main
 
 # 确保脚本有执行权限
-chmod +x deploy.sh
+chmod 777 deploy.sh
 
 # 检查 pnpm 是否安装
 if ! command -v pnpm &> /dev/null; then
