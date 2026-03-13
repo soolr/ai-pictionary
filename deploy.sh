@@ -4,6 +4,9 @@
 # 设置错误处理
 set -e
 
+# 确保脚本有执行权限（如果在上传过程中丢失）
+chmod +x "$0" 2>/dev/null || true
+
 # 拉取最新代码
 echo "正在拉取最新代码..."
 git pull origin main
@@ -45,6 +48,13 @@ if [ -f ".env.production" ]; then
     # 读取文件并导出环境变量（忽略注释和空行）
     export $(grep -v '^#' .env.production | xargs)
     echo "✓ 环境变量加载完成"
+    
+    # 验证关键环境变量
+    if [ -z "$POLLINATIONS_API_KEY" ]; then
+        echo "⚠ 警告: POLLINATIONS_API_KEY 未在 .env.production 中设置"
+    else
+        echo "✓ POLLINATIONS_API_KEY 已加载"
+    fi
 else
     echo "⚠ 警告: 未找到 .env.production 文件"
     echo "⚠ 请手动上传 .env.production 文件到 /www/wwwroot/ai-pictionary/"
@@ -63,7 +73,9 @@ pm2 delete ai-pictionary 2>/dev/null || true
 
 # 启动服务（使用 PM2）
 echo "正在启动服务..."
-pm2 start "pnpm start" --name ai-pictionary
+pm2 delete ai-pictionary 2>/dev/null || true
+# 使用 shell 启动以继承环境变量
+pm2 start "bash -c 'pnpm start'" --name ai-pictionary
 pm2 save
 
 # 等待服务启动
