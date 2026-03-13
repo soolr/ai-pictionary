@@ -1,0 +1,7 @@
+{
+  "/api/ai/guess/route": "/api/ai/guess",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/",
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error"
+}

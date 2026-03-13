@@ -14,7 +14,8 @@
 /coverage
 
 # next.js
-/.next/
+# /.next/  # 注释掉以允许提交构建产物
+/.next/cache/  # 但忽略缓存目录以减少仓库大小
 /out/
 
 # production
@@ -39,4 +40,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-/.next
+!/.next/  # 例外：允许提交 .next 目录（构建产物）
