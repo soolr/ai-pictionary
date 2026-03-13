@@ -338,11 +338,8 @@ git pull origin main
 ### 待办事项
 - [x] 本地构建项目 (`pnpm build`) - 成功
 - [x] 本地 ESLint 检查 - 通过
-- [x] 配置 GitHub 同步代码
 - [x] 手动配置 Nginx 反向代理 - 已完成
 - [x] 重启 Nginx - 已完成 (用户操作)
-- [ ] 在服务器上拉取最新代码
-- [ ] 重新构建项目 (`pnpm build`)
 - [ ] 启动 Next.js 服务
 - [ ] 测试 HTTPS 访问
 
@@ -358,45 +355,28 @@ cd /www/wwwroot/ai-pictionary
 ```bash
 cd /www/wwwroot/ai-pictionary
 
-# 1. 拉取最新代码
-git pull origin main
-
-# 2. 安装依赖（如果 package.json 有变化）
-pnpm install
-
-# 3. 重新构建项目（关键步骤，解决 404 问题）
-pnpm build
-
-# 4. 启动服务
+# 启动服务
 pm2 delete ai-pictionary 2>/dev/null || true
 pm2 start "pnpm start" --name ai-pictionary
 pm2 save
 ```
 
 ### 部署步骤（GitHub 同步）
-1. **本地推送代码**：将更改推送到 GitHub
-2. **服务器拉取代码**：`git pull origin main`
-3. **安装依赖**：`pnpm install`（如果 package.json 有变化）
-4. **构建项目**：`pnpm build`（解决 `.next` 目录问题）
-5. **配置 Nginx**：已配置完成
-6. **启动服务**：`pm2 start "pnpm start" --name ai-pictionary`
+1. **配置 Nginx**：已配置完成
+2. **启动服务**：`pm2 start "pnpm start" --name ai-pictionary`
 
 ### 注意
 - Nginx 配置文件已准备：`nginx.conf`
 - SSL 证书目录：`/www/wwwroot/cert/`
 - 服务器代码目录：`/www/wwwroot/ai-pictionary`
 - 服务器使用 deploy.sh 启动服务
-- **重要**：每次代码更新后，必须在服务器上重新运行 `pnpm build`
 
 ## 8. Deploy.sh 部署脚本
 
 ### 脚本功能
 deploy.sh 是服务器部署脚本，包含以下功能：
-1. 拉取最新代码 (`git pull origin main`)
-2. 安装依赖 (`pnpm install`)
-3. 构建项目 (`pnpm build`)
-4. 使用 PM2 启动服务
-5. 显示部署完成信息
+1. 使用 PM2 启动服务
+2. 显示部署完成信息
 
 ### 使用方法
 在服务器上执行：
