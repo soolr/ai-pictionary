@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     console.error("AI API Error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "识别失败" },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
