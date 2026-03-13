@@ -1,5 +1,9 @@
 #!/bin/bash
-# AI Pictionary 部署脚本（FTP/SFTP 上传方式）
+# AI Pictionary 部署脚本
+
+# 拉取最新代码
+echo "正在拉取最新代码..."
+git pull origin main
 
 # 检查 pnpm 是否安装
 if ! command -v pnpm &> /dev/null; then
