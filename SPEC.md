@@ -318,6 +318,7 @@
 - ✅ 环境变量检查和验证
 - ✅ PM2 环境变量继承改进（使用 `bash -c 'pnpm start'`）
 - ✅ 启动状态验证（检查服务是否成功启动）
+- ✅ 自动重置 deploy.sh 以避免 Git 合并冲突（`git checkout -- deploy.sh`）
 
 ### 文档更新
 - ✅ 删除 FTP/SFTP 部署章节（第9章）
