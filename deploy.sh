@@ -4,14 +4,14 @@
 # 设置错误处理
 set -e
 
-# 确保脚本有执行权限（如果在上传过程中丢失）
-chmod +x "$0" 2>/dev/null || true
-
 # 拉取最新代码
 echo "正在拉取最新代码..."
 echo "重置 deploy.sh 以避免合并冲突..."
 git checkout -- deploy.sh || true
 git pull origin main
+
+# 确保脚本有执行权限（如果在上传过程中丢失）
+chmod +x "$0" 2>/dev/null || true
 
 # 检查 pnpm 是否安装
 if ! command -v pnpm &> /dev/null; then
