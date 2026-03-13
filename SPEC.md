@@ -5,13 +5,12 @@
 | 部署方式 | 优点 | 缺点 | 适用场景 |
 |---------|------|------|---------|
 | **Git 同步** | 自动化程度高，版本控制 | 需要 Git 权限，网络依赖 | 开发环境，持续集成 |
-| **FTP/SFTP** | 简单直接，无需 Git | 手动上传，无版本控制 | 生产环境，快速部署 |
 | **压缩包** | 一次性上传所有文件 | 需要解压，文件较大 | 网络不稳定环境 |
 
 ### 推荐部署流程
 
 1. **开发阶段**：使用 Git 同步
-2. **生产部署**：使用 FTP/SFTP 上传构建后的文件
+2. **生产部署**：使用 Git 同步（推荐）或压缩包
 3. **紧急修复**：使用压缩包快速上传
 
 ## 1. 项目概述
@@ -313,6 +312,20 @@
 
 ## 7. 更新记录 (2026-03-13)
 
+### 部署脚本优化
+- ✅ 自动修复执行权限问题（`chmod +x "$0"`）
+- ✅ 添加 .env.production 文件支持
+- ✅ 环境变量检查和验证
+- ✅ PM2 环境变量继承改进（使用 `bash -c 'pnpm start'`）
+- ✅ 启动状态验证（检查服务是否成功启动）
+
+### 文档更新
+- ✅ 删除 FTP/SFTP 部署章节（第9章）
+- ✅ 更新 deploy.sh 脚本内容（使用当前实际版本）
+- ✅ 新增故障排除章节（第9章）
+- ✅ 添加 .env.production 完整说明
+- ✅ 修正环境变量文件名（`.env.local` → `.env.production`）
+
 ### 服务器目录状态
 - **本地开发目录**: `D:\Develop\ai-pictionary` (Windows)
 - **服务器代码目录**: `/www/wwwroot/ai-pictionary` (Linux)
@@ -452,8 +465,12 @@ location / {
 
 ### 脚本功能
 deploy.sh 是服务器部署脚本，包含以下功能：
-1. 使用 PM2 启动服务
-2. 显示部署完成信息
+1. **自动权限修复**：自动修复脚本执行权限
+2. **环境依赖检查**：检查 pnpm 和 PM2 是否安装
+3. **构建产物验证**：验证 .next 目录存在
+4. **环境变量管理**：加载和验证 .env.production 文件
+5. **服务管理**：使用 PM2 启动和管理服务
+6. **启动验证**：检查服务状态确保正常运行
 
 ### 使用方法
 在服务器上执行：
@@ -467,89 +484,15 @@ cd /www/wwwroot/ai-pictionary
 #!/bin/bash
 # AI Pictionary 部署脚本
 
-echo "开始部署 AI Pictionary..."
+# 设置错误处理
+set -e
 
-# 1. 拉取最新代码
+# 确保脚本有执行权限（如果在上传过程中丢失）
+chmod +x "$0" 2>/dev/null || true
+
+# 拉取最新代码
 echo "正在拉取最新代码..."
 git pull origin main
-
-# 2. 安装依赖
-echo "正在安装依赖..."
-pnpm install
-
-# 3. 构建项目
-echo "正在构建项目..."
-pnpm build
-
-# 4. 启动服务（使用 PM2）
-echo "正在启动服务..."
-pm2 delete ai-pictionary 2>/dev/null || true
-pm2 start "pnpm start" --name ai-pictionary
-
-echo "部署完成！"
-echo "访问地址: http://soolr.com 或 http://www.soolr.com"
-echo "PM2 状态: pm2 status"
-echo "请手动配置 Nginx: cp nginx.conf /etc/nginx/conf.d/ai-pictionary.conf && nginx -t && systemctl reload nginx"
-```
-
-### 注意事项
-- 确保服务器已安装 pnpm 和 PM2
-- 确保有正确的 Git 权限拉取代码（Git 方式）
-- Nginx 配置需要手动执行（脚本中已提示）
-
-## 9. FTP/SFTP 部署方式
-
-### 9.1 部署流程
-
-#### 步骤 1: 本地准备
-1. 确保项目已构建（`.next/` 目录已生成）
-2. 检查需要上传的文件列表
-3. 打包文件（可选）
-
-#### 步骤 2: 上传文件
-使用 FTP/SFTP 客户端上传以下文件到 `/www/wwwroot/ai-pictionary/`：
-
-**必须上传的文件：**
-```
-/www/wwwroot/ai-pictionary/
-├── .next/                    # 构建后的文件（必须）
-├── src/                      # 源代码（建议，用于调试）
-├── public/                   # 静态资源（如果有）
-├── package.json              # 依赖配置
-├── pnpm-lock.yaml            # 锁定依赖版本
-├── tsconfig.json             # TypeScript 配置
-├── next.config.js            # Next.js 配置
-├── postcss.config.mjs        # PostCSS 配置
-├── .env.local                # 环境变量（包含 API Key）
-├── deploy.sh                 # 部署脚本
-├── nginx.conf                # Nginx 配置
-└── README.md                 # 说明文档
-```
-
-**不需要上传的文件：**
-- `node_modules/` (服务器上安装)
-- `.git/` (Git 仓库)
-- `nginx-1.24.0/` (服务器环境)
-- `baota.nginx.conf` (参考文件)
-- `package-lock.json` (使用 pnpm)
-
-#### 步骤 3: 服务器执行
-```bash
-# 1. 进入目录
-cd /www/wwwroot/ai-pictionary
-
-# 2. 赋予脚本执行权限
-chmod +x deploy.sh
-
-# 3. 运行部署脚本
-./deploy.sh
-```
-
-### 9.2 deploy.sh 脚本功能（FTP/SFTP 版本）
-
-```bash
-#!/bin/bash
-# AI Pictionary 部署脚本（FTP/SFTP 上传方式）
 
 # 检查 pnpm 是否安装
 if ! command -v pnpm &> /dev/null; then
@@ -568,6 +511,41 @@ fi
 # 进入项目目录
 cd /www/wwwroot/ai-pictionary
 
+# 检查构建产物是否存在
+echo "检查构建产物..."
+if [ ! -d ".next" ]; then
+    echo "错误: 未找到 .next 目录，请确保代码已包含构建产物"
+    exit 1
+fi
+
+# 检查必需的环境变量
+echo "检查环境变量..."
+if [ -z "$DATABASE_URL" ]; then
+    echo "警告: DATABASE_URL 环境变量未设置"
+fi
+
+# 检查并加载 .env.production 文件
+echo "检查环境变量配置文件..."
+if [ -f ".env.production" ]; then
+    echo "✓ 发现 .env.production 文件，正在加载环境变量..."
+    # 读取文件并导出环境变量（忽略注释和空行）
+    export $(grep -v '^#' .env.production | xargs)
+    echo "✓ 环境变量加载完成"
+    
+    # 验证关键环境变量
+    if [ -z "$POLLINATIONS_API_KEY" ]; then
+        echo "⚠ 警告: POLLINATIONS_API_KEY 未在 .env.production 中设置"
+    else
+        echo "✓ POLLINATIONS_API_KEY 已加载"
+    fi
+else
+    echo "⚠ 警告: 未找到 .env.production 文件"
+    echo "⚠ 请手动上传 .env.production 文件到 /www/wwwroot/ai-pictionary/"
+    echo "⚠ 文件内容示例:"
+    echo "   POLLINATIONS_API_KEY=sk_06KzQvxgqD81wEka19HjYBCwnmwa3DLF"
+    echo "⚠ 继续运行（可能导致服务启动失败）..."
+fi
+
 # 安装依赖（生产环境）
 echo "正在安装依赖..."
 pnpm install --production
@@ -578,8 +556,23 @@ pm2 delete ai-pictionary 2>/dev/null || true
 
 # 启动服务（使用 PM2）
 echo "正在启动服务..."
-pm2 start "pnpm start" --name ai-pictionary
+pm2 delete ai-pictionary 2>/dev/null || true
+# 使用 shell 启动以继承环境变量
+pm2 start "bash -c 'pnpm start'" --name ai-pictionary
 pm2 save
+
+# 等待服务启动
+echo "等待服务启动..."
+sleep 5
+
+# 检查服务状态
+echo "检查服务状态..."
+if pm2 status | grep -q "ai-pictionary"; then
+    echo "✓ 服务启动成功"
+else
+    echo "✗ 错误: 服务启动失败"
+    exit 1
+fi
 
 echo "部署完成！"
 echo "访问地址: http://soolr.com 或 http://www.soolr.com"
@@ -590,35 +583,21 @@ echo "  cp /www/wwwroot/ai-pictionary/nginx.conf /etc/nginx/conf.d/ai-pictionary
 echo "  nginx -t && systemctl reload nginx"
 ```
 
-### 9.3 脚本功能说明
+### 新功能说明
+- ✅ **自动权限修复**：脚本运行时自动添加执行权限
+- ✅ **环境变量检查**：验证 .env.production 文件和 API 密钥
+- ✅ **PM2 环境变量继承**：确保环境变量传递给 Next.js 进程
+- ✅ **启动状态验证**：检查服务是否成功启动
 
-✅ **环境检查**：检查 pnpm 和 PM2 是否安装  
-✅ **依赖安装**：安装生产环境依赖（不包含 devDependencies）  
-✅ **服务管理**：停止现有服务并启动新服务  
-✅ **PM2 保存**：保存 PM2 配置，重启后自动恢复  
-✅ **部署反馈**：显示访问地址和状态信息  
+### 注意事项
+- 确保服务器已安装 pnpm 和 PM2
+- 手动上传 .env.production 文件到服务器
+- 确保代码已包含构建产物（.next 目录）
+- .env.production 文件包含敏感密钥，不要提交到 Git 仓库
 
-### 9.4 Nginx 配置（只需执行一次）
+## 9. 故障排除与常见问题
 
-```bash
-# 复制 Nginx 配置
-cp /www/wwwroot/ai-pictionary/nginx.conf /etc/nginx/conf.d/ai-pictionary.conf
-
-# 测试配置
-nginx -t
-
-# 重载 Nginx
-systemctl reload nginx
-```
-
-### 9.5 服务器环境要求
-
-- **Node.js**：建议 18+ 版本
-- **pnpm**：全局安装 (`npm install -g pnpm`)
-- **PM2**：全局安装 (`npm install -g pm2`)
-- **Nginx**：已安装并配置
-
-### 9.6 故障排除
+### 9.1 环境依赖问题
 
 #### 问题 1: pnpm 未安装
 ```bash
@@ -630,13 +609,14 @@ npm install -g pnpm
 npm install -g pm2
 ```
 
-#### 问题 3: 端口被占用
-```bash
-# 查看端口占用
-netstat -tulpn | grep :3000
+### 9.2 部署问题
 
-# 停止占用端口的进程
-kill -9 <PID>
+#### 问题 3: .next 目录不存在
+```bash
+# 在本地运行构建
+pnpm build
+
+# 然后重新上传 .next 目录
 ```
 
 #### 问题 4: 权限不足
@@ -648,26 +628,87 @@ chmod +x deploy.sh
 chown -R www:www /www/wwwroot/ai-pictionary
 ```
 
-### 9.7 部署验证
+### 9.3 环境变量问题
+
+#### 问题 5: .env.production 文件不存在
+```bash
+# 创建 .env.production 文件
+cat > .env.production << EOF
+POLLINATIONS_API_KEY=your_api_key_here
+EOF
+
+# 设置文件权限
+chmod 600 .env.production
+```
+
+#### 问题 6: 环境变量未加载
+```bash
+# 检查 .env.production 文件是否存在
+ls -la .env.production
+
+# 手动设置环境变量
+export POLLINATIONS_API_KEY=your_api_key
+
+# 重启 PM2 服务
+pm2 restart ai-pictionary
+```
+
+### 9.4 服务问题
+
+#### 问题 7: 端口被占用
+```bash
+# 查看端口占用
+netstat -tulpn | grep :3000
+
+# 停止占用端口的进程
+kill -9 <PID>
+```
+
+#### 问题 8: PM2 服务启动失败
+```bash
+# 查看 PM2 日志
+pm2 logs ai-pictionary
+
+# 重启服务
+pm2 restart ai-pictionary
+```
+
+### 9.5 Nginx 问题
+
+#### 问题 9: Nginx 配置错误
+```bash
+# 测试配置
+nginx -t
+
+# 重载配置
+systemctl reload nginx
+```
+
+### 9.6 部署验证
 
 部署完成后，检查以下内容：
 
 1. **服务状态**
-   ```bash
-   pm2 status
-   ```
+    ```bash
+    pm2 status
+    ```
 
 2. **访问网站**
-   - http://soolr.com
-   - http://www.soolr.com
+    - https://soolr.com
+    - https://www.soolr.com
 
 3. **检查日志**
-   ```bash
-   pm2 logs ai-pictionary
-   ```
+    ```bash
+    pm2 logs ai-pictionary
+    ```
 
 4. **检查 Nginx**
-   ```bash
-   nginx -t
-   systemctl status nginx
-   ```
+    ```bash
+    nginx -t
+    systemctl status nginx
+    ```
+
+5. **测试 API**
+    - 访问 https://soolr.com
+    - 尝试 AI 识别功能
+    - 确认不再返回 500 错误
