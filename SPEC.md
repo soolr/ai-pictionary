@@ -385,6 +385,69 @@ pm2 save
 - 服务器代码目录：`/www/wwwroot/ai-pictionary`
 - 服务器使用 deploy.sh 启动服务
 
+### Nginx 配置优化记录 (2026-03-13)
+#### 问题背景
+部署后访问页面时，JS/CSS 资源返回 404 错误。
+
+#### 问题原因
+1. **配置优先级冲突**：正则匹配规则 `location ~* \.(js|css)$` 覆盖了精确匹配规则 `location /_next/static/`
+2. **文件位置错误**：Next.js 服务器模式下，静态资源通过 Node.js 提供，而非直接从磁盘读取
+
+#### 解决方案
+调整 Nginx location 匹配顺序，确保精确匹配优先：
+1. `/api/` (API 路由) → 最高优先级
+2. `/_next/static/` (静态资源) → 次高优先级
+3. `/_next/image` (图片优化) → 第三优先级
+4. 正则匹配（排除 `_next/` 路径）→ 第四优先级
+5. `/` (SPA 路由) → 默认处理
+
+#### 关键配置修改
+```nginx
+# 1. Next.js 静态资源（最高优先级）
+location /_next/static/ {
+    proxy_pass http://localhost:3000;
+    # ... 其他设置
+}
+
+# 2. Next.js API 路由
+location /api/ {
+    proxy_pass http://localhost:3000;
+    # ... 其他设置
+}
+
+# 3. Next.js 图片优化
+location /_next/image {
+    proxy_pass http://localhost:3000;
+}
+
+# 4. 静态资源缓存（排除 _next 路径）
+location ~* ^(?!.*/_next/).*\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+
+# 5. SPA 路由处理
+location / {
+    proxy_pass http://localhost:3000;
+    # ... 其他设置
+}
+```
+
+#### 执行步骤
+1. 修改 `nginx.conf` 配置
+2. 测试配置：`nginx -t`
+3. 重载 Nginx：`nginx -s reload`
+4. 验证访问：`https://soolr.com`
+
+#### 验证结果
+✅ 页面加载正常
+✅ JS/CSS 资源加载正常（不再 404）
+✅ API 请求正常工作
+
+#### 备份文件
+- 原配置备份：`nginx.conf.backup`
+- 如需回滚：`cp nginx.conf.backup nginx.conf && nginx -s reload`
+
 ## 8. Deploy.sh 部署脚本
 
 ### 脚本功能
