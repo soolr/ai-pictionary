@@ -38,6 +38,21 @@ if [ -z "$DATABASE_URL" ]; then
     echo "警告: DATABASE_URL 环境变量未设置"
 fi
 
+# 检查并加载 .env.production 文件
+echo "检查环境变量配置文件..."
+if [ -f ".env.production" ]; then
+    echo "✓ 发现 .env.production 文件，正在加载环境变量..."
+    # 读取文件并导出环境变量（忽略注释和空行）
+    export $(grep -v '^#' .env.production | xargs)
+    echo "✓ 环境变量加载完成"
+else
+    echo "⚠ 警告: 未找到 .env.production 文件"
+    echo "⚠ 请手动上传 .env.production 文件到 /www/wwwroot/ai-pictionary/"
+    echo "⚠ 文件内容示例:"
+    echo "   POLLINATIONS_API_KEY=sk_06KzQvxgqD81wEka19HjYBCwnmwa3DLF"
+    echo "⚠ 继续运行（可能导致服务启动失败）..."
+fi
+
 # 安装依赖（生产环境）
 echo "正在安装依赖..."
 pnpm install --production
