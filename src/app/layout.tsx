@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
-
-const notoSans = Noto_Sans_SC({
-  variable: "--font-noto-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
 
 export const metadata: Metadata = {
   title: "AI 你画我猜",
@@ -20,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className={`${notoSans.variable} antialiased`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>
