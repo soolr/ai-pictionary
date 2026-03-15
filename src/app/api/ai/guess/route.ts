@@ -6,9 +6,6 @@ export async function POST(req: NextRequest) {
   try {
     const { image } = await req.json();
 
-    console.log("Received image length:", image?.length);
-    console.log("Image prefix:", image?.substring(0, 50));
-
     if (!image) {
       return NextResponse.json(
         { error: "请提供图片数据" },
@@ -63,7 +60,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("Full API Response:", JSON.stringify(data, null, 2));
     
     // 如果 content 为空，返回友好提示而不是错误
     let content = data.choices?.[0]?.message?.content;

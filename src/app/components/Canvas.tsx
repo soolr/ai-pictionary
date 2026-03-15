@@ -102,10 +102,8 @@ export default function Canvas({
       setTriggerFn(() => {
         const canvas = canvasRef.current;
         if (!canvas || !onImageReady) return;
-        // 使用jpeg格式并压缩到0.5质量以减小图片大小
         const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
         const base64 = dataUrl.replace("data:image/jpeg;base64,", "");
-        console.log("Canvas base64 length:", base64.length);
         onImageReady(base64);
       });
     }

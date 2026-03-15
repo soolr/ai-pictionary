@@ -23,8 +23,6 @@ export default function Home() {
   const triggerImageReadyRef = useRef<() => void>(() => {});
 
   const handleImageReady = useCallback(async (base64: string) => {
-    console.log("handleImageReady called, base64 length:", base64?.length);
-    
     if (!base64) {
       setError("请先在画布上作画");
       return;
