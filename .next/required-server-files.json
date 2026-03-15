@@ -66,7 +66,7 @@
       "qualities": [
         75
       ],
-      "unoptimized": true
+      "unoptimized": false
     },
     "devIndicators": {
       "position": "bottom-left"
@@ -88,9 +88,7 @@
       "keepAlive": true
     },
     "logging": {},
-    "compiler": {
-      "removeConsole": true
-    },
+    "compiler": {},
     "expireTime": 31536000,
     "staticPageGenerationTimeout": 60,
     "modularizeImports": {
