@@ -1,7 +1,7 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/_global-error/page": "app/_global-error/page.js",
   "/api/ai/guess/route": "app/api/ai/guess/route.js",
+  "/_global-error/page": "app/_global-error/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js"
 }
