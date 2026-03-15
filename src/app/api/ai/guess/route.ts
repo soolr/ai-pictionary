@@ -6,6 +6,9 @@ export async function POST(req: NextRequest) {
   try {
     const { image } = await req.json();
 
+    console.log("Received image length:", image?.length);
+    console.log("Image prefix:", image?.substring(0, 50));
+
     if (!image) {
       return NextResponse.json(
         { error: "请提供图片数据" },
@@ -21,17 +24,17 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = {
-      model: "claude-airforce",
+      model: "openai",
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: "用一句话简短中文描述这张图片画的是什么，并以 JSON 格式返回：{\"text\": \"描述内容\", \"confidence\": 0.8}" },
+            { type: "text", text: "请用一句话简短中文描述这张图片画的是什么。返回一个JSON格式：{\"text\":\"描述内容\",\"confidence\":0.8}，confidence表示识别可信度，0-1之间，越确定数值越高。" },
             { 
               type: "image_url", 
               image_url: { 
-                url: `data:image/png;base64,${image}`,
-                detail: "low" 
+                url: `data:image/jpeg;base64,${image}`,
+                detail: "high"
               } 
             }
           ]
@@ -60,14 +63,23 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("API Response:", JSON.stringify(data));
-
-    const content = data.choices?.[0]?.message?.content;
+    console.log("Full API Response:", JSON.stringify(data, null, 2));
+    
+    // 如果 content 为空，返回友好提示而不是错误
+    let content = data.choices?.[0]?.message?.content;
+    
+    // 检查是否有其他格式的响应
+    if (!content && data.choices?.[0]?.message?.content === "") {
+      // content 为空字符串，尝试其他字段
+      content = data.choices?.[0]?.text || data.text || "";
+    }
+    // 如果 content 为空，返回友好提示而不是错误
     if (!content || content.trim() === "") {
-      return NextResponse.json(
-        { error: "无法识别：请确保画布上有绘画内容" },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        text: "未能识别到绘画内容，请尝试画更清晰的图案",
+        confidence: 0.2,
+        timestamp: Date.now(),
+      });
     }
 
     let text = "";
@@ -89,6 +101,15 @@ export async function POST(req: NextRequest) {
 
     // 清理文本
     text = text.replace(/[*#]/g, "").trim();
+
+    // 如果解析失败或内容为空，返回默认值
+    if (!text || text.trim() === "") {
+      return NextResponse.json({
+        text: "未识别到绘画内容，请尝试画出更清晰的图案",
+        confidence: 0.3,
+        timestamp: Date.now(),
+      });
+    }
 
     return NextResponse.json({
       text: text,
