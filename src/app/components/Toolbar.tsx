@@ -37,11 +37,11 @@ export default function Toolbar({
   onClear,
 }: ToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#111111] rounded-xl border border-[#2a2a2a]">
+    <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-[#111111] rounded-xl border border-[#2a2a2a]">
       {/* Colors */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2">
         <span className="text-[#888888] text-xs font-medium uppercase tracking-wider">颜色</span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 max-w-[280px] sm:max-w-none">
           {COLORS.map((c) => (
             <button
               key={c}
@@ -60,10 +60,8 @@ export default function Toolbar({
         </div>
       </div>
 
-      <div className="w-px h-8 bg-[#2a2a2a]" />
-
       {/* Brush Sizes */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2">
         <span className="text-[#888888] text-xs font-medium uppercase tracking-wider">粗细</span>
         <div className="flex gap-2">
           {BRUSH_SIZES.map((size) => (
@@ -85,13 +83,11 @@ export default function Toolbar({
         </div>
       </div>
 
-      <div className="w-px h-8 bg-[#2a2a2a]" />
-
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
         <button
           onClick={() => setIsEraser(!isEraser)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
             isEraser
               ? "bg-[#bb86fc] text-black shadow-lg shadow-purple-500/30"
               : "bg-[#222222] text-[#b0b0b0] hover:bg-[#333333]"
@@ -104,7 +100,7 @@ export default function Toolbar({
         </button>
         <button
           onClick={onClear}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-[#bb86fc] text-black hover:bg-[#9965f4] transition-all shadow-md flex items-center gap-2"
+          className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-[#bb86fc] text-black hover:bg-[#9965f4] transition-all shadow-md flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
