@@ -694,6 +694,28 @@ cd /www/wwwroot/ai-pictionary
    ```
 5. 清除浏览器缓存或使用隐私模式访问
 
+### ⚠️ 重要提醒：部署前必须重新构建
+
+**每次部署上线前，必须执行以下步骤：**
+
+```bash
+# 1. 重新构建项目（必须！）
+pnpm build
+
+# 2. 提交构建产物到 Git
+git add .next/
+git commit -m "fix: 更新构建产物"
+git push origin main
+
+# 3. 服务器部署
+# 在服务器上执行：git pull && pm2 restart
+```
+
+**原因**：
+- 服务器不能构建（无权限）
+- .next 目录需要从本地构建后提交
+- 每次代码修改都需要重新构建
+
 ---
 
 ## 9. 故障排除与常见问题
