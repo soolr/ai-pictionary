@@ -76,12 +76,22 @@ pnpm install --production
 echo "停止现有服务..."
 pm2 delete ai-pictionary 2>/dev/null || true
 
+# 停止端口 3000/8000 上的旧 Next.js 进程
+echo "检查并停止旧进程..."
+pkill -f "next start" 2>/dev/null || true
+sleep 2
+
 # 启动服务（使用 PM2）
 echo "正在启动服务..."
 pm2 delete ai-pictionary 2>/dev/null || true
 # 使用 shell 启动以继承环境变量
 pm2 start "bash -c 'pnpm start'" --name ai-pictionary
 pm2 save
+
+# 更新 Nginx 配置
+echo "更新 Nginx 配置..."
+cp /www/wwwroot/ai-pictionary/nginx.conf /www/server/nginx/conf/nginx.conf
+nginx -s reload
 
 # 等待服务启动
 echo "等待服务启动..."
@@ -97,9 +107,5 @@ else
 fi
 
 echo "部署完成！"
-echo "访问地址: http://soolr.com 或 http://www.soolr.com"
+echo "访问地址: https://soolr.com 或 https://www.soolr.com"
 echo "PM2 状态: pm2 status"
-echo "Nginx 配置已准备: /www/wwwroot/ai-pictionary/nginx.conf"
-echo "如需更新 Nginx 配置:"
-echo "  cp /www/wwwroot/ai-pictionary/nginx.conf /etc/nginx/conf.d/ai-pictionary.conf"
-echo "  nginx -t && systemctl reload nginx"
