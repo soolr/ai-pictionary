@@ -596,6 +596,106 @@ echo "  nginx -t && systemctl reload nginx"
 - 确保代码已包含构建产物（.next 目录）
 - .env.production 文件包含敏感密钥，不要提交到 Git 仓库
 
+## 10. 本地构建部署流程（推荐）
+
+### 10.1 部署架构说明
+
+由于服务器资源限制，**采用本地构建后提交 Git 的部署方式**：
+- 本地（Windows）构建生产版本
+- 构建产物（.next 目录）提交到 GitHub
+- 服务器通过 `git pull` 获取最新代码
+
+### 10.2 构建配置检查清单
+
+#### ✅ 配置文件
+- `next.config.js` - 主配置文件（已配置 webpack）
+- `next.config.ts` - 应删除（与 .js 冲突）
+- `package.json` - 包含 build 脚本
+
+#### ✅ .gitignore 配置
+```
+/.next/cache/     # 忽略构建缓存（减少仓库大小）
+!/.next/          # 例外：允许提交 .next 目录
+```
+
+### 10.3 本地构建步骤
+
+```bash
+# 1. 进入项目目录
+cd D:\Develop\ai-pictionary
+
+# 2. 安装依赖（首次或依赖更新时）
+pnpm install
+
+# 3. 构建生产版本
+pnpm build
+
+# 4. 检查 .next 目录是否生成
+ls -la .next/
+
+# 5. 确保构建产物已跟踪到 Git
+git status .next/
+# 应该有已跟踪的文件，如果没有：
+# git add .next/
+```
+
+### 10.4 提交并推送
+
+```bash
+# 添加所有更改（包括 .next 目录）
+git add .
+
+# 提交
+git commit -m "fix: 更新构建产物"
+
+# 推送到 GitHub
+git push origin main
+```
+
+### 10.5 服务器部署
+
+```bash
+# 在服务器上执行
+cd /www/wwwroot/ai-pictionary
+git pull origin main
+pm2 restart ai-pictionary
+```
+
+或使用 deploy.sh：
+```bash
+cd /www/wwwroot/ai-pictionary
+./deploy.sh
+```
+
+### 10.6 验证部署成功
+
+1. 清除浏览器缓存
+2. 访问 https://soolr.com
+3. 检查页面是否显示最新版本
+4. 测试 AI 识别功能
+
+### 10.7 故障排查
+
+#### 问题：页面显示旧版本
+
+排查步骤：
+1. 确认本地 `.next` 目录是最新的构建产物
+2. 确认 Git 已跟踪所有 .next 文件：
+   ```bash
+   git ls-tree -r HEAD --name-only | grep "^\\.next/static"
+   ```
+3. 确认服务器已拉取最新代码：
+   ```bash
+   git log -1 --oneline
+   ```
+4. 重启 PM2：
+   ```bash
+   pm2 restart ai-pictionary
+   ```
+5. 清除浏览器缓存或使用隐私模式访问
+
+---
+
 ## 9. 故障排除与常见问题
 
 ### 9.1 环境依赖问题
