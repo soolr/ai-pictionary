@@ -102,6 +102,7 @@ export default function Canvas({
       setTriggerFn(() => {
         const canvas = canvasRef.current;
         if (!canvas || !onImageReady) return;
+        
         const dataUrl = canvas.toDataURL("image/png");
         const base64 = dataUrl.replace("data:image/png;base64,", "");
         if (base64) onImageReady(base64);
