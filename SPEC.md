@@ -283,7 +283,7 @@
 
 ### 部署步骤
 1. 构建项目: `npm run build`
-2. 启动服务: `npm start` (端口 3000)
+2. 启动服务: `npm start` (端口 8000)
 3. 配置 Nginx 反向代理
 4. 测试配置: `nginx -t`
 5. 重载 Nginx: `nginx -s reload`
