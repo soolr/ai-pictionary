@@ -13,17 +13,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 简单检查图片是否为空（全白）
-    // 如果 base64 长度太短，可能是空画布
-    // 注意：即使是空白画布，base64 也可能包含大量数据（背景色）
-    // 所以我们主要依赖后端 AI 的返回结果，这里暂时移除长度检查，避免误判
-    if (image.length < 50) {
-      return NextResponse.json(
-        { error: "请确保画布上有绘画内容" },
-        { status: 400 }
-      );
-    }
-
     if (!API_KEY) {
       return NextResponse.json(
         { error: "请配置 POLLINATIONS_API_KEY 环境变量" },
@@ -71,22 +60,12 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("API Response:", JSON.stringify(data, null, 2));
+    console.log("API Response:", JSON.stringify(data));
 
-    // 检查 API 返回结构
-    if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-      console.error("Invalid API response structure:", data);
-      return NextResponse.json(
-        { error: "API 返回格式异常，请稍后重试" },
-        { status: 500 }
-      );
-    }
-
-    const content = data.choices[0]?.message?.content;
+    const content = data.choices?.[0]?.message?.content;
     if (!content || content.trim() === "") {
-      console.error("Empty content from API:", data);
       return NextResponse.json(
-        { error: "无法识别：请确保画布上有清晰的绘画内容" },
+        { error: "无法识别：请确保画布上有绘画内容" },
         { status: 400 }
       );
     }
