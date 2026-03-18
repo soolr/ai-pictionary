@@ -1,7 +1,7 @@
 {
-  "/_not-found/page": "/_not-found",
   "/api/ai/guess/route": "/api/ai/guess",
-  "/_global-error/page": "/_global-error",
   "/favicon.ico/route": "/favicon.ico",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
   "/page": "/"
 }
